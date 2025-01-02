@@ -113,7 +113,7 @@ def input_error(func):                                                          
         except IndexError:
             return "Enter the argument for the command"
         except ValueError:
-            return "Give me name and phone number please." 
+            return "Give me name and phone number in correct (10 digits) format please." 
         except KeyError:                            
             return "Enter the right name please."
         
@@ -145,19 +145,20 @@ def change_contact(args, book: AddressBook):
     record = book.find(name)                                                                 # find the contact by name
 
     if record:                                                                               # if the contact exists
-        try:
-            record.edit_phone(old_phone, new_phone)                                          # use the edit_phone method
-            return f"Updated {name}'s phone: {old_phone} -> {new_phone}"
-        except ValueError:
-            return f"Old phone number {old_phone} not found for {name}."
+        record.edit_phone(old_phone, new_phone)                                          # use the edit_phone method
+        return f"Updated {name}'s phone: {old_phone} -> {new_phone}"
     else:
         return f"Contact with name {name} not found. Enter the correct name, please."
 
 
 @input_error
 def show_phone(args, book: AddressBook):                                                        # getting phone number for specified contact
-    name = args[0]
-    return book.find(name)
+    name = args[0]  
+    record = book.find(name)  
+    if record:
+        return f"{record.name.value}: {', '.join(phone.value for phone in record.phones)}"
+    else:
+        return f"Contact with name {name} not found."
     
 @input_error
 def show_all(_, book):                                                                          # shows all items in dictionary contacts
@@ -172,11 +173,8 @@ def add_birthday(args, book):
     record = book.find(name)                                                                    # find the record by name
 
     if record:                                                                                  # if the record exists
-        try:
-            record.add_birthday(birthday)                                                       # add the birthday using Record's method
-            return f"Birthday {birthday} has been added for {name}."
-        except ValueError as e:
-            return f"Error: {e}"                                                                # if invalid birthday format
+        record.add_birthday(birthday)                                                       # add the birthday using Record's method
+        return f"Birthday {birthday} has been added for {name}."
     else:
         return f"Contact with name {name} not found. Enter the correct name, please."
 
