@@ -20,11 +20,12 @@ class Phone(Field):
 
 class Birthday(Field):
     def __init__(self, value):
-        try:
-            parsed_date = datetime.strptime(value, "%d.%m.%Y").date()
-            self.value = parsed_date
+        
+        try:                                                                            # validation of the input date format
+            datetime.strptime(value, "%d.%m.%Y")  
         except ValueError:
-            raise ValueError("Invalid date format. Use DD.MM.YYYY")
+            raise ValueError ("Invalid date format. Use DD.MM.YYYY")
+        super().__init__(value)  
 
 class Record:
     def __init__(self, name):
@@ -45,7 +46,7 @@ class Record:
             self.add_phone(new_phone)
             self.remove_phone(old_phone)
         else:
-            raise ValueError                                                            #  if the old phone wasn't found
+            raise ValueError("Old phone number is not found")                                                           #  if the old phone wasn't found
             
     def remove_phone(self, phone):
         self.phones = [p for p in self.phones if p.value != phone]  
@@ -57,7 +58,7 @@ class Record:
         return None                                                                     # return None if phone is not found
 
     def __str__(self):
-        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
+        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}, birthday: {self.birthday.value}"
 
 
 
@@ -84,16 +85,18 @@ class AddressBook(UserDict):
 
         for record in self.data.values():                                               # iterate through the Record objects
             if record.birthday:                                                         # check if the record has a birthday
-                birthday_this_year = record.birthday.value.replace(year=today.year)     # birthday in the current year
+                parsed_birthday = datetime.strptime(record.birthday.value, "%d.%m.%Y").date()
+                birthday_this_year = parsed_birthday.replace(year=today.year)           # birthday in the current year
                 if birthday_this_year < today:                                          # if the birthday already passed this year, use the next year
-                    birthday_this_year = record.birthday.value.replace(year=today.year + 1)
+                    birthday_this_year = parsed_birthday.replace(year=today.year + 1)
 
                 if 0 <= (birthday_this_year - today).days <= days:                      # check if the birthday is within the range
                     if birthday_this_year.weekday() >= 5:                               # if birthday falls on a weekend
                         birthday_this_year = find_next_weekday(birthday_this_year, 0)   # moving it to Monday
                     upcoming_birthdays.append({
                         "name": record.name.value,
-                        "birthday": birthday_this_year
+                        "birthday": birthday_this_year.strftime('%d.%m.%Y')
+
                     })
 
         return upcoming_birthdays
@@ -113,7 +116,7 @@ def input_error(func):                                                          
         except IndexError:
             return "Enter the argument for the command"
         except ValueError:
-            return "Give me name and phone number in correct (10 digits) format please." 
+            return "Incorrect input: please, enter name, phone number in 10 digits format or date in  DD.MM.YYYY format." 
         except KeyError:                            
             return "Enter the right name please."
         
@@ -174,7 +177,7 @@ def add_birthday(args, book):
 
     if record:                                                                                  # if the record exists
         record.add_birthday(birthday)                                                       # add the birthday using Record's method
-        return f"Birthday {birthday} has been added for {name}."
+        return f"Birthday {birthday} has been added to {name}."
     else:
         return f"Contact with name {name} not found. Enter the correct name, please."
 
@@ -189,7 +192,7 @@ def show_birthday(args, book):
     if record.birthday is None:
         return f"{name} does not have a birthday set."
     
-    return f"{name}'s birthday is {record.birthday.value.strftime('%d.%m.%Y')}."
+    return f"{name}'s birthday is {record.birthday.value}."
 
 @input_error
 def birthdays(args, book):
