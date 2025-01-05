@@ -119,9 +119,12 @@ def input_error(func):                                                          
             return "Incorrect input: please, enter name, phone number in 10 digits format or date in  DD.MM.YYYY format." 
         except KeyError:                            
             return "Enter the right name please."
-        
-    return inner
+        except Exception as ex:
+            return f"error {ex}"
 
+    return inner
+    
+@input_error
 def parse_input(user_input):
     cmd, *args = user_input.split()
     cmd = cmd.strip().lower()
